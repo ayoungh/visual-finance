@@ -1,3 +1,22 @@
+# Visual Finance
+
+This a small project to visually show and explore your personal finances. 
+
+![image info](./public/screenshot.png)
+
+***
+
+Some of the things I hope to add soon:
+
+- [ ] Define income(s)
+- [ ] Add and remove outgoings
+- [ ] Show the outstanding amount 
+
+
+
+***
+
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started

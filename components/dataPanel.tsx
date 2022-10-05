@@ -26,7 +26,7 @@ const DataPanel = ({ nodes, setNodes }) => {
         [{transform[0].toFixed(2)}, {transform[1].toFixed(2)}, {transform[2].toFixed(2)}]
       </div>
       <div className="title">Nodes</div>
-      {nodes.map((node) => (
+      {nodes.map((node: { id: React.Key; position: { x: number; y: number; }; data: { amount: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | React.ReactFragment | React.ReactPortal | null | undefined; }; }) => (
         <div key={node.id}>
           Node {node.id} - x: {node.position.x.toFixed(2)}, y: {node.position.y.toFixed(2)}
           <div>{node?.data?.amount}</div>

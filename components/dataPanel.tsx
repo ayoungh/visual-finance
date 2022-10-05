@@ -3,7 +3,7 @@ import { useStore } from 'reactflow';
 
 const transformSelector = (state) => state.transform;
 
-const dataPanel = ({ nodes, setNodes }) => {
+const DataPanel = ({ nodes, setNodes }) => {
   const transform = useStore(transformSelector);
 
   const selectAll = useCallback(() => {
@@ -40,4 +40,4 @@ const dataPanel = ({ nodes, setNodes }) => {
   );
 };
 
-export default dataPanel;
+export default DataPanel;

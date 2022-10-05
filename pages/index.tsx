@@ -1,3 +1,4 @@
+// @ts-nocheck
 /* eslint-disable react/no-children-prop */
 import type { NextPage } from "next";
 import Head from "next/head";

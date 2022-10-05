@@ -1,7 +1,9 @@
+// @ts-nocheck
+
 import React, { useCallback } from 'react';
 import { useStore } from 'reactflow';
 
-const transformSelector = (state) => state.transform;
+const transformSelector = (state: { transform: any; }) => state.transform;
 
 const DataPanel = ({ nodes, setNodes }) => {
   const transform = useStore(transformSelector);

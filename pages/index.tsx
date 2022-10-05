@@ -1,3 +1,4 @@
+/* eslint-disable react/no-children-prop */
 import type { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
@@ -14,6 +15,8 @@ import ReactFlow, {
   useKeyPress,
   ReactFlowProvider,
   Panel,
+  Connection,
+  Edge,
 } from "reactflow";
 // 👇 you need to import the reactflow styles
 import "reactflow/dist/style.css";
@@ -164,7 +167,7 @@ const Home: NextPage = () => {
   }, [nodeName, setNodes]);
 
   const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
+    (params: Edge<any> | Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
 

@@ -39,7 +39,7 @@ function App() {
       <div className="border-b bg-white p-4 shadow-sm">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold text-gray-800">
-            Financial Flow Dashboard
+            Visual Finance
           </h1>
           <CurrencySelector />
         </div>

@@ -2,6 +2,12 @@ import { create } from 'zustand';
 import { Node, Edge, XYPosition } from 'reactflow';
 import { persist } from 'zustand/middleware';
 
+interface BalanceNodeData {
+  label: string;
+  amount: number;
+  type: 'balance';
+}
+
 interface FinanceNode extends Node {
   data: {
     label: string;
@@ -11,8 +17,12 @@ interface FinanceNode extends Node {
   };
 }
 
+interface BalanceNode extends Node {
+  data: BalanceNodeData;
+}
+
 interface FinanceState {
-  nodes: FinanceNode[];
+  nodes: (FinanceNode | BalanceNode)[];
   edges: Edge[];
   balance: number;
   currency: string;
@@ -78,28 +88,36 @@ const initialExpenses = [
 
 const initialBalance = initialIncome - initialExpenses.reduce((sum, exp) => sum + exp.amount, 0);
 
-const initialNodes: FinanceNode[] = [
+const initialNodes: (FinanceNode | BalanceNode)[] = [
   {
     id: 'balance',
     type: 'balanceNode',
-    position: calculateInitialPosition('balance'),
-    data: { label: 'Current Balance', amount: initialBalance },
+    position: { x: 350, y: 200 },
+    data: {
+      label: 'Balance',
+      amount: initialBalance,
+      type: 'balance',
+    },
   },
   {
     id: 'income-0',
     type: 'financeNode',
-    position: calculateInitialPosition('income'),
-    data: { label: 'Monthly Salary', amount: initialIncome, type: 'income' },
+    position: calculateInitialPosition('income', undefined, 'Initial Income'),
+    data: {
+      type: 'income',
+      label: 'Initial Income',
+      amount: initialIncome,
+    },
   },
   ...initialExpenses.map((expense, index) => ({
     id: `expense-${index + 1}`,
     type: 'financeNode',
     position: calculateInitialPosition('expense', expense.group, expense.label),
-    data: { 
-      label: expense.label, 
-      amount: expense.amount, 
+    data: {
       type: 'expense',
-      group: expense.group 
+      label: expense.label,
+      amount: expense.amount,
+      group: expense.group,
     },
   })),
 ];
@@ -130,19 +148,19 @@ const createNode = (id: string, type: 'income' | 'expense', amount: number, labe
   };
 };
 
-const addEdges = (nodes: FinanceNode[]): Edge[] => {
+const addEdges = (nodes: (FinanceNode | BalanceNode)[]): Edge[] => {
   return nodes.filter(node => node.id !== 'balance').map(node => ({
     id: `e-${node.id}`,
     source: node.id,
     target: 'balance',
     animated: true,
-    style: { stroke: node.data.type === 'income' ? '#22c55e' : '#ef4444', strokeWidth: 2 },
+    style: { stroke: (node as FinanceNode).data.type === 'income' ? '#22c55e' : '#ef4444', strokeWidth: 2 },
   }));
 };
 
-const calculateBalance = (nodes: FinanceNode[]): number => {
-  const income = nodes.filter(node => node.data.type === 'income').reduce((sum, node) => sum + node.data.amount, 0);
-  const expenses = nodes.filter(node => node.data.type === 'expense').reduce((sum, node) => sum + node.data.amount, 0);
+const calculateBalance = (nodes: (FinanceNode | BalanceNode)[]): number => {
+  const income = nodes.filter(node => (node as FinanceNode).data.type === 'income').reduce((sum, node) => sum + (node as FinanceNode).data.amount, 0);
+  const expenses = nodes.filter(node => (node as FinanceNode).data.type === 'expense').reduce((sum, node) => sum + (node as FinanceNode).data.amount, 0);
   return income - expenses;
 };
 
@@ -213,8 +231,8 @@ export const useFinanceStore = create(
           const nodeToRemove = state.nodes.find((node) => node.id === id);
           if (!nodeToRemove || nodeToRemove.id === 'balance') return state;
 
-          const amount = nodeToRemove.data.amount;
-          const type = nodeToRemove.data.type;
+          const amount = (nodeToRemove as FinanceNode).data.amount;
+          const type = (nodeToRemove as FinanceNode).data.type;
           
           const newBalance = type === 'income' 
             ? state.balance - amount 
@@ -246,8 +264,8 @@ export const useFinanceStore = create(
           const node = state.nodes.find((n) => n.id === id);
           if (!node || node.id === 'balance') return state;
 
-          const oldAmount = node.data.amount;
-          const type = node.data.type;
+          const oldAmount = (node as FinanceNode).data.amount;
+          const type = (node as FinanceNode).data.type;
           const difference = amount - oldAmount;
           const newBalance = type === 'income' 
             ? state.balance + difference 

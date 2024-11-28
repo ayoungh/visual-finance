@@ -15,21 +15,44 @@ interface FinanceState {
 
 let nodeId = 3;
 
-const calculateInitialPosition = (type: string, group?: string): XYPosition => {
-  const baseX = type === 'income' ? 200 : 600;
-  const baseY = 100;
+const GROUPS = ['Housing', 'Utilities', 'Subscriptions'];
+
+const calculateInitialPosition = (type: string, group?: string, label?: string): XYPosition => {
+  // Base positions for each section
+  const incomeX = 150;
+  const expenseX = 600;
+  const verticalSpacing = 120; // Increased vertical spacing between nodes
+  const horizontalGroupSpacing = 200; // Increased horizontal spacing between groups
+  const baseY = 50; // Start higher to make room for more nodes
   
-  if (group) {
+  if (type === 'income') {
     return {
-      x: baseX + (Math.random() * 100 - 50),
-      y: baseY + (Math.random() * 100)
+      x: incomeX,
+      y: baseY + (nodeId * verticalSpacing) // Evenly space income nodes vertically
+    };
+  } else if (type === 'balance') {
+    return {
+      x: 400, // Center the balance node horizontally
+      y: 600 // Fixed position at the bottom
+    };
+  } else { // expenses
+    const groupIndex = GROUPS.indexOf(group || '');
+    if (groupIndex !== -1) {
+      // Calculate the number of items in this group to space them evenly
+      const itemsInGroup = initialExpenses.filter(e => e.group === group).length;
+      const groupItemIndex = initialExpenses.filter(e => e.group === group).findIndex(e => e.label === label);
+      
+      return {
+        x: expenseX + (groupIndex * horizontalGroupSpacing),
+        y: baseY + (groupItemIndex * verticalSpacing) // Evenly space items within groups
+      };
+    }
+    // For ungrouped expenses
+    return {
+      x: expenseX,
+      y: baseY + (nodeId * verticalSpacing)
     };
   }
-  
-  return {
-    x: baseX,
-    y: baseY + Math.random() * 200
-  };
 };
 
 const initialIncome = 5000;
@@ -47,27 +70,25 @@ const initialNodes: Node[] = [
   {
     id: 'balance',
     type: 'balanceNode',
-    position: { x: 400, y: 300 },
+    position: calculateInitialPosition('balance'),
     data: { label: 'Current Balance', amount: initialBalance },
   },
   {
     id: 'income-0',
     type: 'financeNode',
-    position: { x: 200, y: 100 },
+    position: calculateInitialPosition('income'),
     data: { label: 'Monthly Salary', amount: initialIncome, type: 'income' },
-    dragHandle: '.drag-handle',
   },
   ...initialExpenses.map((expense, index) => ({
     id: `expense-${index + 1}`,
     type: 'financeNode',
-    position: calculateInitialPosition('expense', expense.group),
+    position: calculateInitialPosition('expense', expense.group, expense.label),
     data: { 
       label: expense.label, 
       amount: expense.amount, 
       type: 'expense',
       group: expense.group 
     },
-    dragHandle: '.drag-handle',
   })),
 ];
 
@@ -92,7 +113,7 @@ export const useFinanceStore = create<FinanceState>((set) => ({
   nodes: initialNodes,
   edges: initialEdges,
   balance: initialBalance,
-  currency: 'USD',
+  currency: 'GBP',
 
   setCurrency: (currency) => set({ currency }),
 
@@ -100,9 +121,8 @@ export const useFinanceStore = create<FinanceState>((set) => ({
     const newNode: Node = {
       id: `${type}-${nodeId++}`,
       type: 'financeNode',
-      position: calculateInitialPosition(type, group),
+      position: calculateInitialPosition(type, group, label),
       data: { label, amount, type, group },
-      dragHandle: '.drag-handle',
     };
 
     const newEdge: Edge = {
@@ -153,7 +173,7 @@ export const useFinanceStore = create<FinanceState>((set) => ({
 
       return {
         nodes: updatedNodes,
-        edges: state.edges.filter((e) => e.source !== id),
+        edges: state.edges.filter((e) => e.source !== id && e.target !== id),
         balance: newBalance,
       };
     });

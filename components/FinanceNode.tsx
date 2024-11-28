@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { Handle, Position } from 'reactflow';
-import { Trash2, ArrowUpCircle, ArrowDownCircle, GripHorizontal, Tag } from 'lucide-react';
+import { Trash2, ArrowUpCircle, ArrowDownCircle, Tag } from 'lucide-react';
 import { useFinanceStore } from '@/store/financeStore';
 import { formatCurrency } from '@/utils/currency';
 
@@ -25,7 +25,7 @@ export default memo(function FinanceNode({ id, data }: FinanceNodeProps) {
   };
 
   return (
-    <div className={`px-4 py-2 shadow-lg rounded-lg border-2 ${
+    <div className={`px-4 py-2 shadow-lg rounded-lg border-2 cursor-move hover:shadow-xl transition-shadow ${
       data.type === 'income' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
     }`}>
       <Handle 
@@ -46,9 +46,6 @@ export default memo(function FinanceNode({ id, data }: FinanceNodeProps) {
             <ArrowDownCircle className="w-5 h-5 text-red-600" />
           )}
           <span className="font-medium text-gray-700">{data.label}</span>
-        </div>
-        <div className="drag-handle cursor-move">
-          <GripHorizontal className="w-4 h-4 text-gray-400" />
         </div>
       </div>
 

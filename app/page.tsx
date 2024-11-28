@@ -53,6 +53,13 @@ function App() {
           nodeTypes={nodeTypes}
           onNodesChange={onNodesChange}
           fitView
+          defaultViewport={{ x: 0, y: 0, zoom: 0.85 }}
+          minZoom={0.2}
+          maxZoom={1.5}
+          fitViewOptions={{
+            padding: 0.2,
+            includeHiddenNodes: true,
+          }}
           className="bg-gray-50"
         >
           <Background />

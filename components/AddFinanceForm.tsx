@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui
 const GROUPS = ['Housing', 'Utilities', 'Subscriptions', 'Transportation', 'Food', 'Entertainment'];
 
 export default function AddFinanceForm() {
+  const [open, setOpen] = useState(false);
   const [type, setType] = useState<'income' | 'expense'>('income');
   const [amount, setAmount] = useState('');
   const [label, setLabel] = useState('');
@@ -20,16 +21,17 @@ export default function AddFinanceForm() {
     setAmount('');
     setLabel('');
     setGroup('');
+    setOpen(false); // Close the sheet after successful submission
   };
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl"
         >
-          <PlusCircle className="w-4 h-4" />
+          <PlusCircle className="w-5 h-5" />
           Add Transaction
         </button>
       </SheetTrigger>

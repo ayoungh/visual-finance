@@ -50,13 +50,12 @@ function App() {
   return (
     <div className="w-full h-screen flex flex-col">
       <div className="border-b bg-white p-4 shadow-sm">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-800">
             Visual Finance
           </h1>
           <CurrencySelector />
         </div>
-        <AddFinanceForm />
       </div>
 
       <div className="flex-1">
@@ -80,6 +79,8 @@ function App() {
           <Controls />
         </ReactFlow>
       </div>
+      
+      <AddFinanceForm />
     </div>
   );
 }

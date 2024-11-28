@@ -1,8 +1,9 @@
 import React, { memo } from 'react';
 import { Handle, Position } from 'reactflow';
-import { Trash2, ArrowUpCircle, ArrowDownCircle, Tag } from 'lucide-react';
+import { Trash2, ArrowUpCircle, ArrowDownCircle, Tag, Pencil } from 'lucide-react';
 import { useFinanceStore } from '@/store/financeStore';
 import { formatCurrency } from '@/utils/currency';
+import AddFinanceForm from './AddFinanceForm';
 
 interface FinanceNodeProps {
   id: string;
@@ -23,6 +24,19 @@ export default memo(function FinanceNode({ id, data }: FinanceNodeProps) {
     const newAmount = parseFloat(e.target.value) || 0;
     updateNodeAmount(id, newAmount);
   };
+
+  const handleDelete = () => {
+    removeNode(id);
+  };
+
+  const editTrigger = (
+    <button
+      className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+      title="Edit transaction"
+    >
+      <Pencil className="w-4 h-4 text-gray-500" />
+    </button>
+  );
 
   return (
     <div className={`px-4 py-2 shadow-lg rounded-lg border-2 cursor-move hover:shadow-xl transition-shadow ${
@@ -66,12 +80,24 @@ export default memo(function FinanceNode({ id, data }: FinanceNodeProps) {
             className="w-20 py-1 focus:outline-none"
           />
         </div>
-        <button
-          onClick={() => removeNode(id)}
-          className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-        >
-          <Trash2 className="w-4 h-4 text-gray-500" />
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => removeNode(id)}
+            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <Trash2 className="w-4 h-4 text-gray-500" />
+          </button>
+          <AddFinanceForm
+            editNode={{
+              id,
+              type: data.type,
+              amount: data.amount,
+              label: data.label,
+              group: data.group,
+            }}
+            trigger={editTrigger}
+          />
+        </div>
       </div>
     </div>
   );

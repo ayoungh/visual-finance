@@ -1,5 +1,5 @@
 import React from 'react';
-import { PlusCircle, Loader2 } from 'lucide-react';
+import { PlusCircle, Loader2, Pencil } from 'lucide-react';
 import { useFinanceStore } from '../store/financeStore';
 import {
   Sheet,
@@ -38,10 +38,22 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-export default function AddFinanceForm() {
+interface AddFinanceFormProps {
+  editNode?: {
+    id: string;
+    type: 'income' | 'expense';
+    amount: number;
+    label: string;
+    group?: string;
+  };
+  trigger?: React.ReactNode;
+}
+
+export default function AddFinanceForm({ editNode, trigger }: AddFinanceFormProps) {
   const [open, setOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const addNode = useFinanceStore((state) => state.addNode);
+  const updateNode = useFinanceStore((state) => state.updateNode);
 
   const {
     register,
@@ -53,25 +65,44 @@ export default function AddFinanceForm() {
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      type: 'income',
-      amount: '',
-      label: '',
-      group: 'none',
+      type: editNode?.type || 'income',
+      amount: editNode ? String(editNode.amount) : '',
+      label: editNode?.label || '',
+      group: editNode?.group || 'none',
     },
   });
 
   const type = watch('type');
 
+  React.useEffect(() => {
+    if (open && editNode) {
+      setValue('type', editNode.type);
+      setValue('amount', String(editNode.amount));
+      setValue('label', editNode.label);
+      setValue('group', editNode.group || 'none');
+    }
+  }, [open, editNode, setValue]);
+
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate API call
-      addNode(
-        data.type,
-        parseFloat(data.amount),
-        data.label,
-        data.group || undefined
-      );
+      if (editNode) {
+        updateNode(
+          editNode.id,
+          data.type,
+          parseFloat(data.amount),
+          data.label,
+          data.group === 'none' ? undefined : data.group
+        );
+      } else {
+        addNode(
+          data.type,
+          parseFloat(data.amount),
+          data.label,
+          data.group === 'none' ? undefined : data.group
+        );
+      }
       reset();
       setOpen(false);
     } finally {
@@ -79,22 +110,26 @@ export default function AddFinanceForm() {
     }
   };
 
+  const defaultTrigger = (
+    <Button
+      size="lg"
+      className="fixed bottom-6 right-6 z-50 gap-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 bg-blue-600 hover:bg-blue-700 text-white"
+    >
+      <PlusCircle className="w-5 h-5" />
+      Add Transaction
+    </Button>
+  );
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button
-          size="lg"
-          className="fixed bottom-6 right-6 z-50 gap-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          <PlusCircle className="w-5 h-5" />
-          Add Transaction
-        </Button>
+        {trigger || defaultTrigger}
       </SheetTrigger>
       <SheetContent>
         <SheetHeader>
-          <SheetTitle>Add New Transaction</SheetTitle>
+          <SheetTitle>{editNode ? 'Edit Transaction' : 'Add New Transaction'}</SheetTitle>
           <SheetDescription>
-            Add a new income or expense to your financial flow.
+            {editNode ? 'Update the transaction details below.' : 'Add a new income or expense to your financial flow.'}
           </SheetDescription>
         </SheetHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-6">
@@ -196,12 +231,12 @@ export default function AddFinanceForm() {
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Adding...
+                {editNode ? 'Updating...' : 'Adding...'}
               </>
             ) : (
               <>
-                <PlusCircle className="w-4 h-4 mr-2" />
-                Add Transaction
+                {editNode ? <Pencil className="w-4 h-4 mr-2" /> : <PlusCircle className="w-4 h-4 mr-2" />}
+                {editNode ? 'Update Transaction' : 'Add Transaction'}
               </>
             )}
           </Button>

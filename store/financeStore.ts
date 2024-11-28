@@ -7,7 +7,8 @@ interface FinanceState {
   edges: Edge[];
   balance: number;
   currency: string;
-  addNode: (type: string, amount: number, label: string, group?: string) => void;
+  addNode: (type: 'income' | 'expense', amount: number, label: string, group?: string) => void;
+  updateNode: (id: string, type: 'income' | 'expense', amount: number, label: string, group?: string) => void;
   removeNode: (id: string) => void;
   updateNodeAmount: (id: string, amount: number) => void;
   updateNodePosition: (id: string, position: XYPosition) => void;
@@ -111,6 +112,31 @@ const initialEdges: Edge[] = [
   })),
 ];
 
+const createNode = (id: string, type: 'income' | 'expense', amount: number, label: string, group?: string): Node => {
+  return {
+    id,
+    type: 'financeNode',
+    position: calculateInitialPosition(type, group, label),
+    data: { label, amount, type, group },
+  };
+};
+
+const addEdges = (nodes: Node[]): Edge[] => {
+  return nodes.filter(node => node.id !== 'balance').map(node => ({
+    id: `e-${node.id}`,
+    source: node.id,
+    target: 'balance',
+    animated: true,
+    style: { stroke: node.data.type === 'income' ? '#22c55e' : '#ef4444', strokeWidth: 2 },
+  }));
+};
+
+const calculateBalance = (nodes: Node[]): number => {
+  const income = nodes.filter(node => node.data.type === 'income').reduce((sum, node) => sum + node.data.amount, 0);
+  const expenses = nodes.filter(node => node.data.type === 'expense').reduce((sum, node) => sum + node.data.amount, 0);
+  return income - expenses;
+};
+
 export const useFinanceStore = create(
   persist<FinanceState>(
     (set) => ({
@@ -136,43 +162,39 @@ export const useFinanceStore = create(
       },
 
       addNode: (type, amount, label, group) => {
-        const newNode: Node = {
-          id: `${type}-${nodeId++}`,
-          type: 'financeNode',
-          position: calculateInitialPosition(type, group, label),
-          data: { label, amount, type, group },
-        };
-
-        const newEdge: Edge = {
-          id: `e-${newNode.id}`,
-          source: newNode.id,
-          target: 'balance',
-          animated: true,
-          style: { stroke: type === 'income' ? '#22c55e' : '#ef4444', strokeWidth: 2 },
-        };
-
+        const id = `node-${nodeId++}`;
+        const newNode = createNode(id, type, amount, label, group);
         set((state) => {
-          const newBalance = type === 'income' 
-            ? state.balance + amount 
-            : state.balance - amount;
+          const newNodes = [...state.nodes, newNode];
+          return {
+            nodes: newNodes,
+            edges: addEdges(newNodes),
+            balance: calculateBalance(newNodes),
+          };
+        });
+      },
 
-          // Update nodes including balance
-          const updatedNodes = [...state.nodes, newNode].map(node => 
-            node.id === 'balance' 
-              ? { ...node, data: { ...node.data, amount: newBalance } }
-              : node
-          );
+      updateNode: (id, type, amount, label, group) => {
+        set((state) => {
+          const nodeIndex = state.nodes.findIndex((node) => node.id === id);
+          if (nodeIndex === -1) return state;
 
-          // Ensure no duplicate edges
-          const existingEdgeIndex = state.edges.findIndex(edge => edge.source === newNode.id);
-          const updatedEdges = existingEdgeIndex >= 0
-            ? state.edges.map((edge, index) => index === existingEdgeIndex ? newEdge : edge)
-            : [...state.edges, newEdge];
+          const updatedNodes = [...state.nodes];
+          updatedNodes[nodeIndex] = {
+            ...updatedNodes[nodeIndex],
+            data: {
+              ...updatedNodes[nodeIndex].data,
+              type,
+              amount,
+              label,
+              group,
+            },
+          };
 
           return {
             nodes: updatedNodes,
-            edges: updatedEdges,
-            balance: newBalance,
+            edges: addEdges(updatedNodes),
+            balance: calculateBalance(updatedNodes),
           };
         });
       },

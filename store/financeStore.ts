@@ -21,6 +21,8 @@ interface BalanceNode extends Node {
   data: BalanceNodeData;
 }
 
+type NodeType = 'income' | 'expense' | 'balance';
+
 interface FinanceState {
   nodes: (FinanceNode | BalanceNode)[];
   edges: Edge[];
@@ -39,41 +41,29 @@ let nodeId = 3;
 
 const GROUPS = ['Housing', 'Utilities', 'Subscriptions'];
 
-const calculateInitialPosition = (type: string, group?: string, label?: string): XYPosition => {
+const calculateInitialPosition = (type: NodeType, group?: string, label?: string): XYPosition => {
   // Base positions for each section
   const incomeX = 150;
   const expenseX = 600;
-  const verticalSpacing = 120; // Increased vertical spacing between nodes
-  const horizontalGroupSpacing = 200; // Increased horizontal spacing between groups
-  const baseY = 50; // Start higher to make room for more nodes
+  const balanceX = 350;
   
-  if (type === 'income') {
-    return {
-      x: incomeX,
-      y: baseY + (nodeId * verticalSpacing) // Evenly space income nodes vertically
-    };
-  } else if (type === 'balance') {
-    return {
-      x: 400, // Center the balance node horizontally
-      y: 600 // Fixed position at the bottom
-    };
-  } else { // expenses
-    const groupIndex = GROUPS.indexOf(group || '');
-    if (groupIndex !== -1) {
-      // Calculate the number of items in this group to space them evenly
-      const itemsInGroup = initialExpenses.filter(e => e.group === group).length;
-      const groupItemIndex = initialExpenses.filter(e => e.group === group).findIndex(e => e.label === label);
-      
-      return {
-        x: expenseX + (groupIndex * horizontalGroupSpacing),
-        y: baseY + (groupItemIndex * verticalSpacing) // Evenly space items within groups
-      };
-    }
-    // For ungrouped expenses
-    return {
-      x: expenseX,
-      y: baseY + (nodeId * verticalSpacing)
-    };
+  let y = 200;  // Default Y position
+  
+  switch (type) {
+    case 'income':
+      return { x: incomeX, y };
+    case 'expense':
+      // Adjust Y position based on group
+      if (group) {
+        const groupIndex = GROUPS.indexOf(group);
+        if (groupIndex !== -1) {
+          y += groupIndex * 100;
+        }
+      }
+      return { x: expenseX, y };
+    case 'balance':
+    default:
+      return { x: balanceX, y };
   }
 };
 
@@ -92,7 +82,7 @@ const initialNodes: (FinanceNode | BalanceNode)[] = [
   {
     id: 'balance',
     type: 'balanceNode',
-    position: { x: 350, y: 200 },
+    position: calculateInitialPosition('balance'),
     data: {
       label: 'Balance',
       amount: initialBalance,
@@ -102,7 +92,7 @@ const initialNodes: (FinanceNode | BalanceNode)[] = [
   {
     id: 'income-0',
     type: 'financeNode',
-    position: calculateInitialPosition('income', undefined, 'Initial Income'),
+    position: calculateInitialPosition('income'),
     data: {
       type: 'income',
       label: 'Initial Income',

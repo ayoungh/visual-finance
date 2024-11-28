@@ -7,6 +7,11 @@ import ReactFlow, {
   OnNodesChange,
   NodeChange,
   applyNodeChanges,
+  Edge,
+  Connection,
+  EdgeChange,
+  applyEdgeChanges,
+  OnEdgesChange,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { useFinanceStore } from "@/store/financeStore";
@@ -21,7 +26,7 @@ const nodeTypes = {
 };
 
 function App() {
-  const { nodes, edges, updateNodePosition } = useFinanceStore();
+  const { nodes, edges, updateNodePosition, updateEdges } = useFinanceStore();
 
   const onNodesChange: OnNodesChange = useCallback(
     (changes: NodeChange[]) => {
@@ -32,6 +37,14 @@ function App() {
       });
     },
     [updateNodePosition]
+  );
+
+  const onEdgesChange: OnEdgesChange = useCallback(
+    (changes: EdgeChange[]) => {
+      const updatedEdges = applyEdgeChanges(changes, edges);
+      updateEdges(updatedEdges);
+    },
+    [edges, updateEdges]
   );
 
   return (
@@ -50,8 +63,9 @@ function App() {
         <ReactFlow
           nodes={nodes}
           edges={edges}
-          nodeTypes={nodeTypes}
           onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          nodeTypes={nodeTypes}
           fitView
           defaultViewport={{ x: 0, y: 0, zoom: 0.85 }}
           minZoom={0.2}

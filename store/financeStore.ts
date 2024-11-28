@@ -10,6 +10,7 @@ interface FinanceState {
   removeNode: (id: string) => void;
   updateNodeAmount: (id: string, amount: number) => void;
   updateNodePosition: (id: string, position: XYPosition) => void;
+  updateEdges: (edges: Edge[]) => void;
   setCurrency: (currency: string) => void;
 }
 
@@ -116,6 +117,20 @@ export const useFinanceStore = create<FinanceState>((set) => ({
   currency: 'GBP',
 
   setCurrency: (currency) => set({ currency }),
+  
+  updateEdges: (edges) => {
+    set((state) => ({
+      ...state,
+      edges: edges.map(edge => ({
+        ...edge,
+        animated: true,
+        style: { 
+          stroke: edge.source.includes('income') ? '#22c55e' : '#ef4444',
+          strokeWidth: 2 
+        }
+      }))
+    }));
+  },
 
   addNode: (type, amount, label, group) => {
     const newNode: Node = {
@@ -138,15 +153,22 @@ export const useFinanceStore = create<FinanceState>((set) => ({
         ? state.balance + amount 
         : state.balance - amount;
 
+      // Update nodes including balance
       const updatedNodes = [...state.nodes, newNode].map(node => 
         node.id === 'balance' 
           ? { ...node, data: { ...node.data, amount: newBalance } }
           : node
       );
 
+      // Ensure no duplicate edges
+      const existingEdgeIndex = state.edges.findIndex(edge => edge.source === newNode.id);
+      const updatedEdges = existingEdgeIndex >= 0
+        ? state.edges.map((edge, index) => index === existingEdgeIndex ? newEdge : edge)
+        : [...state.edges, newEdge];
+
       return {
         nodes: updatedNodes,
-        edges: [...state.edges, newEdge],
+        edges: updatedEdges,
         balance: newBalance,
       };
     });
@@ -154,26 +176,32 @@ export const useFinanceStore = create<FinanceState>((set) => ({
 
   removeNode: (id) => {
     set((state) => {
-      const node = state.nodes.find((n) => n.id === id);
-      if (!node || node.id === 'balance') return state;
+      const nodeToRemove = state.nodes.find((node) => node.id === id);
+      if (!nodeToRemove || nodeToRemove.id === 'balance') return state;
 
-      const amount = node.data.amount;
-      const type = node.data.type;
+      const amount = nodeToRemove.data.amount;
+      const type = nodeToRemove.data.type;
+      
       const newBalance = type === 'income' 
         ? state.balance - amount 
         : state.balance + amount;
 
+      // Remove node and its associated edge
       const updatedNodes = state.nodes
-        .filter((n) => n.id !== id)
+        .filter((node) => node.id !== id)
         .map(node => 
           node.id === 'balance' 
             ? { ...node, data: { ...node.data, amount: newBalance } }
             : node
         );
 
+      const updatedEdges = state.edges.filter(
+        (edge) => edge.source !== id
+      );
+
       return {
         nodes: updatedNodes,
-        edges: state.edges.filter((e) => e.source !== id && e.target !== id),
+        edges: updatedEdges,
         balance: newBalance,
       };
     });

@@ -4,6 +4,17 @@ import { Trash2, ArrowUpCircle, ArrowDownCircle, Tag, Pencil } from 'lucide-reac
 import { useFinanceStore } from '@/store/financeStore';
 import { formatCurrency } from '@/utils/currency';
 import AddFinanceForm from './AddFinanceForm';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface FinanceNodeProps {
   id: string;
@@ -81,12 +92,34 @@ export default memo(function FinanceNode({ id, data }: FinanceNodeProps) {
           />
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={() => removeNode(id)}
-            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <Trash2 className="w-4 h-4 text-gray-500" />
-          </button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                title="Delete transaction"
+              >
+                <Trash2 className="w-4 h-4 text-gray-500" />
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Transaction</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete this {data.type} transaction of {currency}{data.amount.toFixed(2)}?
+                  This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDelete}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <AddFinanceForm
             editNode={{
               id,

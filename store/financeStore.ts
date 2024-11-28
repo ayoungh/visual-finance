@@ -2,17 +2,20 @@ import { create } from 'zustand';
 import { Node, Edge, XYPosition } from 'reactflow';
 import { persist } from 'zustand/middleware';
 
+
+type NodeType = 'income' | 'expense' | 'balance';
+
 interface BalanceNodeData {
   label: string;
   amount: number;
-  type: 'balance';
+  type: NodeType;
 }
 
 interface FinanceNode extends Node {
   data: {
     label: string;
     amount: number;
-    type: 'income' | 'expense';
+    type: NodeType;
     group?: string;
   };
 }
@@ -21,7 +24,7 @@ interface BalanceNode extends Node {
   data: BalanceNodeData;
 }
 
-type NodeType = 'income' | 'expense' | 'balance';
+
 
 interface FinanceState {
   nodes: (FinanceNode | BalanceNode)[];
@@ -80,31 +83,31 @@ const initialBalance = initialIncome - initialExpenses.reduce((sum, exp) => sum 
 
 const initialNodes: (FinanceNode | BalanceNode)[] = [
   {
-    id: 'balance',
-    type: 'balanceNode',
-    position: calculateInitialPosition('balance'),
+    id: "balance",
+    type: "balanceNode",
+    position: calculateInitialPosition("balance"),
     data: {
-      label: 'Balance',
+      label: "Balance",
       amount: initialBalance,
-      type: 'balance',
+      type: "balance",
     },
   },
   {
-    id: 'income-0',
-    type: 'financeNode',
-    position: calculateInitialPosition('income'),
+    id: "income-0",
+    type: "financeNode",
+    position: calculateInitialPosition("income"),
     data: {
-      type: 'income',
-      label: 'Initial Income',
+      type: "income",
+      label: "Initial Income",
       amount: initialIncome,
     },
   },
   ...initialExpenses.map((expense, index) => ({
     id: `expense-${index + 1}`,
-    type: 'financeNode',
-    position: calculateInitialPosition('expense', expense.group, expense.label),
+    type: "financeNode",
+    position: calculateInitialPosition("expense", expense.group, expense.label),
     data: {
-      type: 'expense',
+      type: 'expense' as NodeType,
       label: expense.label,
       amount: expense.amount,
       group: expense.group,

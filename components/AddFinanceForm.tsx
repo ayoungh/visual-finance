@@ -84,7 +84,7 @@ export default function AddFinanceForm() {
       <SheetTrigger asChild>
         <Button
           size="lg"
-          className="fixed bottom-6 right-6 z-50 gap-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+          className="fixed bottom-6 right-6 z-50 gap-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 bg-blue-600 hover:bg-blue-700 text-white"
         >
           <PlusCircle className="w-5 h-5" />
           Add Transaction
@@ -190,7 +190,7 @@ export default function AddFinanceForm() {
 
           <Button
             type="submit"
-            className="w-full"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
             disabled={isSubmitting}
           >
             {isSubmitting ? (

@@ -1,17 +1,15 @@
 "use client";
 
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import ReactFlow, {
   Background,
   Controls,
-  OnNodesChange,
   NodeChange,
-  applyNodeChanges,
   Edge,
   Connection,
   EdgeChange,
   applyEdgeChanges,
-  OnEdgesChange,
+  applyNodeChanges,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { useFinanceStore } from "@/store/financeStore";
@@ -28,7 +26,20 @@ const nodeTypes = {
 function App() {
   const { nodes, edges, updateNodePosition, updateEdges } = useFinanceStore();
 
-  const onNodesChange: OnNodesChange = useCallback(
+  // Hydrate the store after mount
+  useEffect(() => {
+    const savedState = localStorage.getItem('visual-finance-storage');
+    if (savedState) {
+      try {
+        const { state } = JSON.parse(savedState);
+        useFinanceStore.setState(state);
+      } catch (error) {
+        console.error('Failed to hydrate store:', error);
+      }
+    }
+  }, []);
+
+  const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
       changes.forEach((change) => {
         if (change.type === "position" && change.position) {
@@ -39,7 +50,7 @@ function App() {
     [updateNodePosition]
   );
 
-  const onEdgesChange: OnEdgesChange = useCallback(
+  const onEdgesChange = useCallback(
     (changes: EdgeChange[]) => {
       const updatedEdges = applyEdgeChanges(changes, edges);
       updateEdges(updatedEdges);

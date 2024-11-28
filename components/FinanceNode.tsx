@@ -21,7 +21,7 @@ interface FinanceNodeProps {
   data: {
     label: string;
     amount: number;
-    type: string;
+    type: 'income' | 'expense';
     group?: string;
   };
 }

@@ -2,8 +2,17 @@ import { create } from 'zustand';
 import { Node, Edge, XYPosition } from 'reactflow';
 import { persist } from 'zustand/middleware';
 
+interface FinanceNode extends Node {
+  data: {
+    label: string;
+    amount: number;
+    type: 'income' | 'expense';
+    group?: string;
+  };
+}
+
 interface FinanceState {
-  nodes: Node[];
+  nodes: FinanceNode[];
   edges: Edge[];
   balance: number;
   currency: string;
@@ -69,7 +78,7 @@ const initialExpenses = [
 
 const initialBalance = initialIncome - initialExpenses.reduce((sum, exp) => sum + exp.amount, 0);
 
-const initialNodes: Node[] = [
+const initialNodes: FinanceNode[] = [
   {
     id: 'balance',
     type: 'balanceNode',
@@ -112,7 +121,7 @@ const initialEdges: Edge[] = [
   })),
 ];
 
-const createNode = (id: string, type: 'income' | 'expense', amount: number, label: string, group?: string): Node => {
+const createNode = (id: string, type: 'income' | 'expense', amount: number, label: string, group?: string): FinanceNode => {
   return {
     id,
     type: 'financeNode',
@@ -121,7 +130,7 @@ const createNode = (id: string, type: 'income' | 'expense', amount: number, labe
   };
 };
 
-const addEdges = (nodes: Node[]): Edge[] => {
+const addEdges = (nodes: FinanceNode[]): Edge[] => {
   return nodes.filter(node => node.id !== 'balance').map(node => ({
     id: `e-${node.id}`,
     source: node.id,
@@ -131,7 +140,7 @@ const addEdges = (nodes: Node[]): Edge[] => {
   }));
 };
 
-const calculateBalance = (nodes: Node[]): number => {
+const calculateBalance = (nodes: FinanceNode[]): number => {
   const income = nodes.filter(node => node.data.type === 'income').reduce((sum, node) => sum + node.data.amount, 0);
   const expenses = nodes.filter(node => node.data.type === 'expense').reduce((sum, node) => sum + node.data.amount, 0);
   return income - expenses;
